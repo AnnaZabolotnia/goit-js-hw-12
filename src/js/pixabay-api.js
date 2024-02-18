@@ -1,18 +1,33 @@
-const GALLERY_LINK = 'gallery-link';
-const BASE_URL = 'https://pixabay.com/api/';
+import axios from 'axios';
 
-function fetchImages(q) {
-  const searchParams = new URLSearchParams({
-    key: '42391578-00c3b1aea4bb12888c676ccb5',
-    q,
-    image_type: 'photo',
-    orientation: 'horizontal',
-    safeSearch: true,
-  });
+export default class pixabayApi {
+  BASE_URL = 'https://pixabay.com/api/';
+  currentPage = 1;
+  resultsPerPage = 15;
+  totalPages = 0;
+  query = '';
+  constructor(apiKey) {
+    this.apiKey = apiKey;
+  }
 
-  const url = BASE_URL + '?' + searchParams.toString();
-
-  return fetch(url).then(response => response.json());
+  async getImageList() {
+    const searchParams = {
+      params: {
+        key: this.apiKey,
+        q: this.query,
+        image_type: 'photo',
+        orientation: 'horizontal',
+        safesearch: 'true',
+        page: this.currentPage,
+        per_page: this.resultsPerPage,
+      },
+    };
+    try {
+      const response = await axios.get(this.BASE_URL, searchParams);
+      this.totalPages = Math.ceil(response.data.totalHits / 15);
+      return response.data.hits;
+    } catch {
+      throw new Error('something went wrong');
+    }
+  }
 }
-
-export { fetchImages, GALLERY_LINK };
